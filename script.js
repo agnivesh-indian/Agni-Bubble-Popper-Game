@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastTime = 0;
     let score = 0;
     let gameInterval;
+    let gameHasStarted = false;
 
     // --- Sound Toggle ---
     soundToggle.addEventListener('click', () => {
@@ -30,10 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
     class FloatingObject {
         constructor(type = 'bubble') {
             this.element = document.createElement('div');
-            this.element.classList.add('bubble'); // Base class for positioning
+            this.element.classList.add('bubble');
             this.type = type;
 
-            const size = Math.random() * 60 + 20; // 20px to 80px
+            const size = Math.random() * 60 + 20;
             this.size = size;
             this.element.style.width = `${size}px`;
             this.element.style.height = `${size}px`;
@@ -41,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.x = Math.random() * (gameContainer.offsetWidth - size);
             this.y = gameContainer.offsetHeight + size;
             
-            this.speed = Math.random() * 100 + 50; // pixels per second
+            this.speed = Math.random() * 100 + 50;
             this.wobbleX = (Math.random() - 0.5) * 40;
             this.wobbleSpeed = (Math.random() - 0.5) * 0.02;
 
@@ -55,11 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
             this.element.style.transform = `translate(${this.x}px, ${this.y}px)`;
             bubbleContainer.appendChild(this.element);
 
-            this.element.addEventListener('click', () => this.pop());
-            this.element.addEventListener('touchstart', (e) => {
+            const popHandler = (e) => {
                 e.preventDefault();
                 this.pop();
-            });
+            };
+
+            this.element.addEventListener('click', popHandler);
+            this.element.addEventListener('touchstart', popHandler);
         }
 
         update(dt) {
@@ -119,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function gameLoop(timestamp) {
+        if (!gameHasStarted) return;
         if (!lastTime) lastTime = timestamp;
         const dt = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
@@ -141,7 +145,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startGame() {
+        if (gameHasStarted) return;
+        gameHasStarted = true;
+
         instructionsPopup.classList.add('hidden');
+        
+        // Pre-load sound on first user interaction
+        popSound.play().catch(e => {});
+        popSound.pause();
 
         gameInterval = setInterval(() => {
             if (document.hasFocus() && bubbles.length < 50) {
@@ -149,12 +160,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 bubbles.push(new FloatingObject(type));
             }
         }, 300);
-
-        lastTime = performance.now();
-        requestAnimationFrame(gameLoop);
     }
 
+    // Start game on button click or touch
     startGameBtn.addEventListener('click', startGame);
+    startGameBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startGame();
+    });
 
     window.addEventListener('resize', () => {
         if (gameInterval) {
@@ -162,4 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bubbles = [];
         }
     });
+
+    // Start the animation loop, but it will be idle until game starts
+    requestAnimationFrame(gameLoop);
 });
