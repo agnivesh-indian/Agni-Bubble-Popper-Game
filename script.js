@@ -3,10 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameContainer = document.querySelector('.game-container');
     const popSound = document.getElementById('pop-sound');
     const soundToggle = document.getElementById('sound-toggle');
+    const scoreDisplay = document.querySelector('.score');
 
     let soundEnabled = true;
     let bubbles = [];
     let lastTime = 0;
+    let score = 0;
 
     // --- Sound Toggle ---
     soundToggle.addEventListener('click', () => {
@@ -15,11 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
         popSound.muted = !soundEnabled;
     });
 
-    // --- Bubble Class ---
-    class Bubble {
-        constructor() {
+    // --- Score ---
+    function updateScore(points) {
+        score += points;
+        scoreDisplay.textContent = `Score: ${score}`;
+    }
+
+    // --- Floating Object Class ---
+    class FloatingObject {
+        constructor(type = 'bubble') {
             this.element = document.createElement('div');
-            this.element.classList.add('bubble');
+            this.element.classList.add('bubble'); // Base class for positioning
+            this.type = type;
 
             const size = Math.random() * 60 + 20; // 20px to 80px
             this.size = size;
@@ -33,8 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
             this.wobbleX = (Math.random() - 0.5) * 40;
             this.wobbleSpeed = (Math.random() - 0.5) * 0.02;
 
-            const hue = Math.random() * 360;
-            this.element.style.background = `radial-gradient(circle at 65% 15%, white 1px, hsla(${hue}, 100%, 85%, 0.7) 15%, hsl(${hue}, 100%, 75%) 80%, transparent 100%)`;
+            if (this.type === 'bubble') {
+                const hue = Math.random() * 360;
+                this.element.style.background = `radial-gradient(circle at 65% 15%, white 1px, hsla(${hue}, 100%, 85%, 0.7) 15%, hsl(${hue}, 100%, 75%) 80%, transparent 100%)`;
+            } else {
+                this.element.classList.add('cross');
+            }
 
             this.element.style.transform = `translate(${this.x}px, ${this.y}px)`;
             bubbleContainer.appendChild(this.element);
@@ -56,12 +69,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.popped) return;
             this.popped = true;
 
-            if (soundEnabled) {
-                popSound.currentTime = 0;
-                popSound.play().catch(e => { /* Ignore play error if user hasn't interacted */ });
+            // Calculate points based on size (smaller = more points/penalty)
+            const points = Math.max(1, Math.floor(10 - this.size / 10));
+
+            if (this.type === 'bubble') {
+                updateScore(points);
+                createPopText(`+${points}`, this.x + this.size / 2, this.y + this.size / 2, false);
+            } else {
+                updateScore(-points);
+                createPopText(`-${points}`, this.x + this.size / 2, this.y + this.size / 2, true);
             }
 
-            createPopText(this.x + this.size / 2, this.y + this.size / 2);
+            if (soundEnabled) {
+                popSound.currentTime = 0;
+                popSound.play().catch(e => { /* Ignore play error */ });
+            }
 
             this.element.classList.add('popped');
             setTimeout(() => {
@@ -75,10 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    function createPopText(x, y) {
+    function createPopText(text, x, y, isPenalty) {
         const popText = document.createElement('span');
         popText.classList.add('pop-text');
-        popText.textContent = '+Pop!';
+        popText.textContent = text;
+        if (isPenalty) {
+            popText.style.color = '#ff8a80'; // Light red for penalties
+        }
         
         popText.style.left = `${x}px`;
         popText.style.top = `${y}px`;
@@ -95,12 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const dt = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
 
-        if (dt > 0.1) { // prevent large jumps if tab is inactive
+        if (dt > 0.1) {
             requestAnimationFrame(gameLoop);
             return;
         }
 
-        // Update and remove bubbles
         for (let i = bubbles.length - 1; i >= 0; i--) {
             const bubble = bubbles[i];
             bubble.update(dt);
@@ -115,20 +139,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function start() {
         setInterval(() => {
-            if (document.hasFocus() && bubbles.length < 50) { // Limit bubbles
-                bubbles.push(new Bubble());
+            if (document.hasFocus() && bubbles.length < 50) {
+                // 15% chance to spawn a cross
+                const type = Math.random() < 0.15 ? 'cross' : 'bubble';
+                bubbles.push(new FloatingObject(type));
             }
-        }, 300); // Slower spawn rate
+        }, 300);
 
         lastTime = performance.now();
         requestAnimationFrame(gameLoop);
     }
 
-    // Handle window resize
     window.addEventListener('resize', () => {
-        bubbles.forEach(bubble => {
-            bubble.element.remove();
-        });
+        bubbles.forEach(bubble => bubble.element.remove());
         bubbles = [];
     });
 
