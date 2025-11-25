@@ -123,29 +123,24 @@ body {
     z-index: 2;
 }
 
-@keyframes pop-burst {
-    0% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(1.5);
-        opacity: 0;
-    }
-}
-
-@keyframes float-up {
-    0% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(-60px) scale(0.8);
-        opacity: 0;
-    }
-}
-
+#close-game-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    color: #555;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
 }
 
 /* --- Instructions Popup --- */
@@ -211,10 +206,82 @@ body {
 
 
 @media (max-width: 600px) {
+
+
     .title {
+
+
         font-size: 1.8rem;
+
+
     }
+
+
     .pop-text {
+
+
         font-size: 1.2rem;
+
+
     }
+
+
 }
+
+
+
+
+
+@media (max-width: 480px) {
+
+
+    .title {
+
+
+        font-size: 1.6rem;
+
+
+        top: 15px;
+
+
+    }
+
+
+    .score {
+
+
+        font-size: 1.4rem;
+
+
+        top: 55px; /* Position score below the title */
+
+
+        left: 50%;
+
+
+        transform: translateX(-50%); /* Center the score */
+
+
+    }
+
+
+    #close-game-btn {
+
+
+        top: 15px;
+
+
+        right: 15px;
+
+
+        width: 35px;
+
+
+        height: 35px;
+
+
+    }
+
+
+}
+

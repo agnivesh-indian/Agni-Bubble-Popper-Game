@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreDisplay = document.querySelector('.score');
     const instructionsPopup = document.getElementById('instructions-popup');
     const startGameBtn = document.getElementById('start-game-btn');
+    const closeGameBtn = document.getElementById('close-game-btn');
 
     let soundEnabled = true;
     let bubbles = [];
@@ -14,11 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameInterval;
     let gameHasStarted = false;
 
-    // --- Sound Toggle ---
+    // --- Button Event Listeners ---
     soundToggle.addEventListener('click', () => {
         soundEnabled = !soundEnabled;
         soundToggle.textContent = `Sound: ${soundEnabled ? 'ON' : 'OFF'}`;
         popSound.muted = !soundEnabled;
+    });
+
+    closeGameBtn.addEventListener('click', () => {
+        window.history.back();
     });
 
     // --- Score ---
