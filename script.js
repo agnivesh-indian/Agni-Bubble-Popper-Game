@@ -4,11 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const popSound = document.getElementById('pop-sound');
     const soundToggle = document.getElementById('sound-toggle');
     const scoreDisplay = document.querySelector('.score');
+    const instructionsPopup = document.getElementById('instructions-popup');
+    const startGameBtn = document.getElementById('start-game-btn');
 
     let soundEnabled = true;
     let bubbles = [];
     let lastTime = 0;
     let score = 0;
+    let gameInterval;
 
     // --- Sound Toggle ---
     soundToggle.addEventListener('click', () => {
@@ -69,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.popped) return;
             this.popped = true;
 
-            // Calculate points based on size (smaller = more points/penalty)
             const points = Math.max(1, Math.floor(10 - this.size / 10));
 
             if (this.type === 'bubble') {
@@ -102,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         popText.classList.add('pop-text');
         popText.textContent = text;
         if (isPenalty) {
-            popText.style.color = '#ff8a80'; // Light red for penalties
+            popText.style.color = '#ff8a80';
         }
         
         popText.style.left = `${x}px`;
@@ -117,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function gameLoop(timestamp) {
+        if (!lastTime) lastTime = timestamp;
         const dt = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
 
@@ -137,10 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(gameLoop);
     }
 
-    function start() {
-        setInterval(() => {
+    function startGame() {
+        instructionsPopup.classList.add('hidden');
+
+        gameInterval = setInterval(() => {
             if (document.hasFocus() && bubbles.length < 50) {
-                // 15% chance to spawn a cross
                 const type = Math.random() < 0.15 ? 'cross' : 'bubble';
                 bubbles.push(new FloatingObject(type));
             }
@@ -150,10 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(gameLoop);
     }
 
-    window.addEventListener('resize', () => {
-        bubbles.forEach(bubble => bubble.element.remove());
-        bubbles = [];
-    });
+    startGameBtn.addEventListener('click', startGame);
 
-    start();
+    window.addEventListener('resize', () => {
+        if (gameInterval) {
+            bubbles.forEach(bubble => bubble.element.remove());
+            bubbles = [];
+        }
+    });
 });
