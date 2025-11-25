@@ -31,7 +31,7 @@ body {
 
 .score {
     position: absolute;
-    top: 20px;
+    top: 60px; /* moved down */
     left: 20px;
     color: white;
     font-size: 2rem;
