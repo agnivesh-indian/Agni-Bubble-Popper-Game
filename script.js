@@ -122,13 +122,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function gameLoop(timestamp) {
+        // Keep the loop running, even if the game hasn't started
+        requestAnimationFrame(gameLoop);
+
+        // If the game hasn't started, do nothing further in this frame.
         if (!gameHasStarted) return;
+
         if (!lastTime) lastTime = timestamp;
         const dt = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
 
-        if (dt > 0.1) {
-            requestAnimationFrame(gameLoop);
+        if (dt > 0.1) { // prevent large jumps if tab is inactive
             return;
         }
 
@@ -140,8 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 bubbles.splice(i, 1);
             }
         }
-        
-        requestAnimationFrame(gameLoop);
     }
 
     function startGame() {
@@ -150,8 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         instructionsPopup.classList.add('hidden');
         
-        // Pre-load sound on first user interaction
-        popSound.play().catch(e => {});
+        // Pre-load sound on first user interaction, then pause it.
+        popSound.play().catch(e => { /* Autoplay was prevented */ });
         popSound.pause();
 
         gameInterval = setInterval(() => {
@@ -176,6 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Start the animation loop, but it will be idle until game starts
+    // Start the animation loop, it will be idle until the game starts.
     requestAnimationFrame(gameLoop);
 });
